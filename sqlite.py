@@ -15,7 +15,7 @@ class SQLiteIntermediateStore:
         self.process = psutil.Process(os.getpid())
         
     def _create_tables(self):
-        """Create all necessary tables with optimizations"""
+       
         cursor = self.conn.cursor()
         
       
@@ -76,7 +76,7 @@ class SQLiteIntermediateStore:
         self.conn.commit()
     
     def _check_memory(self) -> bool:
-        """Returns True if we spilled to disk, False otherwise"""
+        
         current_mem = self.process.memory_info().rss / (1024 ** 2)  # MB
         
         

@@ -28,7 +28,7 @@ import gc
 class MemoryMonitor:
     def __init__(self, visualizer=None):
         self.process = psutil.Process(os.getpid())
-        self.server_memory_gb = 4  # Fixed server memory
+        self.server_memory_gb = 4 
         
         self.last_memory = 0
         self.peak_memory = 0
@@ -94,7 +94,7 @@ class BatchReport:
         
         self.reports.append(report)
         
-        # Print in the desired format
+      
         print(f"\nBatch {batch_number} (Size: {batch_size} triples)")
         print(f"Memory Usage: {memory_usage_gb:.2f} GB")
         print(f"Actual Overhead: {actual_overhead_gb:.3f} GB")
@@ -116,14 +116,14 @@ class BatchReport:
             print(f"Emergency Mode: {'Yes' if emergency_mode else 'No'}")
         
     def save_to_file(self, filename=None):
-        """Save all batch reports to a JSON file"""
+       
         filename = filename or self.report_filename
         try:
             with open(filename, 'w') as f:
                 json.dump(self.reports, f, indent=2)
-            print(f"\nSaved batch report to {os.path.abspath(filename)}")  
+            print(f"\nSaved {os.path.abspath(filename)}")  
         except Exception as e:
-            print(f"Error saving batch report: {str(e)}")
+            print(f"Error {str(e)}")
 
 
 FUSEKI_QUERY_URL = "http://localhost:3030/gspo_datasets/query"
@@ -360,15 +360,8 @@ class TripleProcessor:
             )
             print(f"Low memory pressure ({memory_pressure:.0%}), increasing batch size to {self.current_batch_size}")
 
-        # 2. Check if we need to spill to disk
-        #if current_memory > self.max_memory_mb * 0.8 and isinstance(self.storage, SQLiteIntermediateStore):
-        # if self.storage._check_memory():  # This will trigger spill to disk if needed
-         # print("⚠️ Memory threshold exceeded, spilled to disk")
-        # Reduce batch size more aggressively after spilling
-      #  self.current_batch_size = max(
-           # self.min_batch_size,
-           # int(self.current_batch_size * 0.6)
-       # )
+       
+      
 
         
         start_time = time.time()
@@ -439,7 +432,7 @@ class TripleProcessor:
             
             
             if i % 1000 == 0:
-                current_mem = self.memory_monitor.get_client_memory() * 1024  # MB
+                current_mem = self.memory_monitor.get_client_memory() * 1024  
                 if current_mem > self.max_memory_mb * 0.90:
                     print(f"EMERGENCY: Memory at {current_mem:.1f}MB, processed {processed_count} of {actual_batch_size}")
                     remaining = batch_results[i+1:] if i+1 < len(batch_results) else []
@@ -466,7 +459,7 @@ class TripleProcessor:
             
         self.batch_reporter.add_report(
             batch_number=self.batch_count,
-            batch_size=processed_count,  # Report actual processed count
+            batch_size=processed_count,  
             memory_usage_gb=mem_report['client_memory_gb'],
             actual_overhead_gb=mem_report['actual_overhead_gb'],
             overhead_per_triple_gb=mem_report['overhead_per_triple_gb'],
@@ -476,7 +469,7 @@ class TripleProcessor:
             spilled_to_disk=self.storage.db_path != ":memory:",
             current_batch_size=self.current_batch_size,
             memory_pressure=final_pressure,
-            emergency_mode=emergency_triggered  # Add emergency flag
+            emergency_mode=emergency_triggered  
         )
 
      
@@ -568,7 +561,7 @@ class TripleProcessor:
             o_vocab = self._extract_vocabulary(o)
 
             if s_vocab != "invalid" and o_vocab != "invalid":
-            # Add vocabulary relation if they're different
+            
               if s_vocab != o_vocab:
                  self.storage.add_vocabulary_relation(s_vocab, o_vocab)
                  self.storage.update_metric('external_links', int_value=1)
@@ -603,7 +596,7 @@ class TripleProcessor:
     if not uri or not isinstance(uri, str):
         return "invalid"
     try:
-        # Clean the URI first
+       
         import re
         cleaned_uri = re.sub(r'[\s\[\]]', '', uri)
         
@@ -752,7 +745,7 @@ def process_metrics(visualizer=None) -> Dict[str, Any]:
             print(f"Error processing {metric}: {str(e)}")
 
     
-    print("\nStarting batch processing for class/property usage and network analysis")
+    print("\nbatch processing")
     processor = None
 
     try:
@@ -795,7 +788,7 @@ def process_metrics(visualizer=None) -> Dict[str, Any]:
         metrics["distinct_vocabularies"] = len(all_vocabularies)
         
         if batch_results["vocabulary_relations"]:
-            print("\nAnalyzing vocabulary network...")
+            print("\nvocab network")
             network_metrics = analyze_vocabulary_network(batch_results["vocabulary_relations"])
             metrics["vocabulary_network"] = network_metrics
         else:
@@ -966,27 +959,21 @@ def create_void_metadata(dataset_uri, metrics):
     return g
 
 def create_data_cube(dataset_uri, metrics):
-    """
-    Creates RDF Data Cube with four datasets:
-    1. Dataset-Level Structural Metrics
-    2. Per-Graph Analytical Metrics  
-    3. Usage Counts and Hierarchy Metrics
-    4. Inter-Vocabulary Network Metrics
-    """
+    
     g = Graph()
     
-    # Bind namespaces
+   
     g.bind("qb", QB)
     g.bind("metric", METRIC)
     g.bind("xsd", XSD)
     g.bind("dcterms", DCTERMS)
     g.bind("rdfs", RDFS)
     
-    # Data Structure Definition
+    
     dsd_uri = URIRef(f"{DATA_CUBE_BASE}dsd")
     g.add((dsd_uri, RDF.type, QB.DataStructureDefinition))
     
-    # Define dimensions
+   
     dimensions = {
         "graph": URIRef(f"{DATA_CUBE_BASE}dimension/graph"),
         "metric_type": URIRef(f"{DATA_CUBE_BASE}dimension/metricType"),
@@ -995,11 +982,11 @@ def create_data_cube(dataset_uri, metrics):
         "property": URIRef(f"{DATA_CUBE_BASE}dimension/property")
     }
     
-    # Define measures
+   
     count_measure = URIRef(f"{DATA_CUBE_BASE}measure/count")
     value_measure = URIRef(f"{DATA_CUBE_BASE}measure/value")
     
-    # Add dimensions to DSD
+   
     for dim_uri, label in [
         (dimensions["graph"], "Graph"),
         (dimensions["metric_type"], "Metric Type"),
@@ -1011,7 +998,7 @@ def create_data_cube(dataset_uri, metrics):
         g.add((dim_uri, RDF.type, QB.DimensionProperty))
         g.add((dim_uri, RDFS.label, Literal(label)))
     
-    # Add measures to DSD
+   
     for measure_uri, label, datatype in [
         (count_measure, "Count", XSD.integer),
         (value_measure, "Value", XSD.decimal)
@@ -1021,9 +1008,9 @@ def create_data_cube(dataset_uri, metrics):
         g.add((measure_uri, RDFS.label, Literal(label)))
         g.add((measure_uri, QB.datatype, datatype))
     
-    # Define metric types
+    
     metric_types = {
-        # Dataset-Level Structural Metrics
+       
         "total_triples": URIRef(f"{DATA_CUBE_BASE}metricType/totalTriples"),
         "distinct_subjects": URIRef(f"{DATA_CUBE_BASE}metricType/distinctSubjects"),
         "distinct_predicates": URIRef(f"{DATA_CUBE_BASE}metricType/distinctPredicates"),
@@ -1036,26 +1023,26 @@ def create_data_cube(dataset_uri, metrics):
         "internal_links": URIRef(f"{DATA_CUBE_BASE}metricType/internalLinks"),
         "external_links": URIRef(f"{DATA_CUBE_BASE}metricType/externalLinks"),
         
-        # Per-Graph Analytical Metrics
+        
         "graph_triples": URIRef(f"{DATA_CUBE_BASE}metricType/graphTriples"),
         "graph_subjects": URIRef(f"{DATA_CUBE_BASE}metricType/graphSubjects"),
         "graph_predicates": URIRef(f"{DATA_CUBE_BASE}metricType/graphPredicates"),
         "graph_objects": URIRef(f"{DATA_CUBE_BASE}metricType/graphObjects"),
         "graph_literals": URIRef(f"{DATA_CUBE_BASE}metricType/graphLiterals"),
         
-        # Usage Counts and Hierarchy Metrics
+        
         "class_usage": URIRef(f"{DATA_CUBE_BASE}metricType/classUsage"),
         "property_usage": URIRef(f"{DATA_CUBE_BASE}metricType/propertyUsage"),
         "class_hierarchy_depth": URIRef(f"{DATA_CUBE_BASE}metricType/classHierarchyDepth"),
         "property_hierarchy_depth": URIRef(f"{DATA_CUBE_BASE}metricType/propertyHierarchyDepth"),
         "distinct_vocabularies": URIRef(f"{DATA_CUBE_BASE}metricType/distinctVocabularies"),
         
-        # Inter-Vocabulary Network Metrics
+        
         "closeness_centrality": URIRef(f"{DATA_CUBE_BASE}metricType/closenessCentrality"),
         "betweenness_centrality": URIRef(f"{DATA_CUBE_BASE}metricType/betweennessCentrality")
     }
     
-    # Create datasets
+   
     datasets = {
         "structural": URIRef(f"{DATA_CUBE_BASE}dataset/structural"),
         "per_graph": URIRef(f"{DATA_CUBE_BASE}dataset/perGraph"),
@@ -1074,7 +1061,7 @@ def create_data_cube(dataset_uri, metrics):
         g.add((dataset_uri, DCTERMS.created, Literal(datetime.now().isoformat(), datatype=XSD.dateTime)))
         g.add((dataset_uri, QB.structure, dsd_uri))
     
-    # Helper function for observations
+   
     obs_counter = 0
     
     def create_observation_id():
@@ -1097,8 +1084,7 @@ def create_data_cube(dataset_uri, metrics):
         g.add((obs_uri, measure_uri, Literal(measure_value)))
         return obs_uri
     
-    # DATASET 1: Dataset-Level Structural Metrics
-    print("Creating Dataset 1: Structural Metrics...")
+    
     structural_metrics = {
         "total_triples": metrics.get("total_triples", 0),
         "distinct_subjects": metrics.get("unique_subjects", 0),
@@ -1124,8 +1110,7 @@ def create_data_cube(dataset_uri, metrics):
                 measure_value=value
             )
     
-    # DATASET 2: Per-Graph Analytical Metrics
-    print("Creating Dataset 2: Per-Graph Metrics...")
+    
     if "per_graph_metrics" in metrics:
         graph_metric_mapping = {
             "triples": "graph_triples",
@@ -1150,10 +1135,9 @@ def create_data_cube(dataset_uri, metrics):
                         measure_value=metrics["per_graph_metrics"][metric_type][graph_uri]
                     )
     
-    # DATASET 3: Usage Counts and Hierarchy Metrics
-    print("Creating Dataset 3: Usage and Hierarchy Metrics...")
     
-    # Class Usage Counts
+    
+   
     if "vcs" in metrics:
         for entry in metrics["vcs"]:
             add_observation(
@@ -1167,7 +1151,7 @@ def create_data_cube(dataset_uri, metrics):
                 measure_value=entry["usageCount"]
             )
     
-    # Property Usage Counts  
+     
     if "vps" in metrics:
         for entry in metrics["vps"]:
             add_observation(
@@ -1181,7 +1165,7 @@ def create_data_cube(dataset_uri, metrics):
                 measure_value=entry["usageCount"]
             )
     
-    # Hierarchy Depths and Distinct Vocabularies
+    
     hierarchy_metrics = {
         "class_hierarchy_depth": metrics.get("class_hierarchy_depth", 0),
         "property_hierarchy_depth": metrics.get("property_hierarchy_depth", 0),
@@ -1199,8 +1183,8 @@ def create_data_cube(dataset_uri, metrics):
                 measure_value=value
             )
     
-    # DATASET 4: Inter-Vocabulary Network Metrics
-    print("Creating Dataset 4: Vocabulary Network Metrics...")
+   
+    
     if "vocabulary_network" in metrics and "centralities" in metrics["vocabulary_network"]:
         centralities = metrics["vocabulary_network"]["centralities"]
         closeness = centralities.get("closeness", {})
@@ -1222,7 +1206,7 @@ def create_data_cube(dataset_uri, metrics):
             closeness_value = closeness.get(vocab, 0.0)
             betweenness_value = betweenness.get(vocab, 0.0)
             
-            # Closeness Centrality
+            
             if closeness_value > 0:
                 add_observation(
                     dataset=datasets["vocabulary_network"],
@@ -1234,7 +1218,7 @@ def create_data_cube(dataset_uri, metrics):
                     measure_value=closeness_value
                 )
             
-            # Betweenness Centrality  
+            
             if betweenness_value > 0:
                 add_observation(
                     dataset=datasets["vocabulary_network"],
@@ -1266,11 +1250,11 @@ def upload_to_fuseki(file_path: str, graph_name: str):
         print(f"Upload error: {str(e)}")
 
 def main():
-    print("Starting analysis...")
+    print("analysing")
 
     visualizer = None
     try:
-        print("\nCollecting data...")
+        print("\ndata collection")
         
 
        
@@ -1280,21 +1264,21 @@ def main():
             print("Failed to get metrics. Exiting.")
             return
 
-        print("\nData collection complete. Preparing visualization...")
+    
 
 
        
-        print("\nGenerating metadata...")
+        print("\nMetadata")
         dataset_uri = URIRef("http://example.org/dataset")
         void_graph = create_void_metadata(dataset_uri, metrics)
         void_graph.serialize("void.ttl", format="turtle")
         cube_graph = create_data_cube(dataset_uri, metrics)
         cube_graph.serialize("cube.ttl", format="turtle")
 
-        # Uncomment if you need to upload to Fuseki
-        # print("\nUploading to Fuseki...")
-        # upload_to_fuseki("void.ttl", METADATA_BASE + "main")
-        # upload_to_fuseki("cube.ttl", DATA_CUBE_BASE + "main")
+        
+        
+        upload_to_fuseki("void.ttl", METADATA_BASE + "main")
+        upload_to_fuseki("cube.ttl", DATA_CUBE_BASE + "main")
 
         print("\nAnalysis completed successfully!")
 
