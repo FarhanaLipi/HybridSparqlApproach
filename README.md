@@ -28,3 +28,14 @@ Software
 Python Dependencies
 ```bash
 pip install requests rdflib networkx psutil seaborn matplotlib
+
+
+Installation and Running Apache Jena
+
+-Download Apache Jena
+-Extract ZIP to a folder
+-Run Fuseki on Windows
+-Open Command Prompt
+-Navigate to the folder
+-Start the server
+-Open browser: http://localhost:3030
